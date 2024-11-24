@@ -22,9 +22,10 @@ public:
   Client(boost::asio::io_context &io_context,
          const tcp::resolver::results_type &endpoints)
       : socket_(io_context), strand_(boost::asio::make_strand(io_context)),
-        endpoints_(endpoints) {do_connect();}
+        endpoints_(endpoints) {}
 
 
+  void start(){auto self(shared_from_this()); do_connect();};
   void write(const std::string& str){
     {
       std::lock_guard<std::mutex> lock(write_mutex_);
@@ -54,6 +55,7 @@ public:
 
 private:
   void do_close(){
+    auto self(shared_from_this());
     socket_.close();
   }
   void do_connect() {
