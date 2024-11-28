@@ -14,8 +14,7 @@ using boost::asio::ip::tcp;
 class Session : public std::enable_shared_from_this<Session> {
 public:
   Session(tcp::socket socket) : socket_(std::move(socket)) {}
-  void start() {}
-
+  void start(){do_read();}
 private:
   void do_read() {
     auto self(shared_from_this());
@@ -53,19 +52,16 @@ private:
 
 class Server {
 public:
-  Server(boost::asio::io_context &io_context, const short &port)
-      : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)) {}
-
+  Server(boost::asio::io_context& io_context, const short& port) : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)){} 
 private:
-  void do_accept() {
-    acceptor_.async_accept([this](boost::system::error_code ec, tcp::socket) {
-      if (ec) {
-        std::cerr << ERR << " Server->do_accept(): " << ec.what() << std::endl;
-        do_accept();
-      }
-      std::make_shared<Session>(std::move(socket))->start();
-    });
+  void do_accept(){
+    acceptor_.async_accept(
+      [this](boost::system::error_code ec, tcp::socket) {
+        if(ec) {std::cerr << ERR << " Server->do_accept(): " << ec.what() << std::endl; do_accept();}
+        std::make_shared<Session>(std::move(socket))->start();
+      });
   }
   tcp::acceptor acceptor_;
+  tcp::socket socket_;
 };
 #endif // SERVER_H
