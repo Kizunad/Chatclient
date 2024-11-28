@@ -3,35 +3,40 @@
 #include <thread>
 
 // ./client <host> <port>
-int main(int argc, char** argv){
-	if(argc != 3){ std::cout << "Usage: " << argv[0] << " <host> <port>" <<std::endl; return 1;}
-	
-	boost::asio::io_context io_context;
-	std::string input;
+int main(int argc, char **argv) {
+  if (argc != 3) {
+    std::cout << "Usage: " << argv[0] << " <host> <port>" << std::endl;
+    return 1;
+  }
 
-	tcp::resolver resolver(io_context);
-	//resolver.resolve(host,port) -> returns endpoints
-	auto client = std::make_shared<Client>(io_context, resolver.resolve(argv[1], argv[2]));
+  boost::asio::io_context io_context;
+  std::string input;
 
-	client->start();
-	
-	std::thread io_thread([&io_context]() {io_context.run();});
-	std::thread read_thread([client](){
-		while(true){
-			try {	
-				std::cout << "Recv: " << client->read_with_wait() << std::endl;
-			} catch (const std::exception& e) {
-				std::cerr <<"Caught exception: " << e.what() <<std::endl;
-				break;
-			} catch (...){
-				std::cerr <<"Unknown exception: " << std::endl;
-				break;
-			}
-					}});
+  tcp::resolver resolver(io_context);
+  // resolver.resolve(host,port) -> returns endpoints
+  auto client =
+      std::make_shared<Client>(io_context, resolver.resolve(argv[1], argv[2]));
 
-	io_context.stop();
-	io_thread.join();
-	read_thread.join();
+  client->start();
 
-	return 0;
+  std::thread io_thread([&io_context]() { io_context.run(); });
+  std::thread read_thread([client]() {
+    while (true) {
+      try {
+        std::cout << "Recv: " << client->read_with_wait() << std::endl;
+      } catch (const std::exception &e) {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
+        break;
+      } catch (...) {
+        std::cerr << "Unknown exception: " << std::endl;
+        break;
+      }
+    }
+  });
+
+  io_context.stop();
+  io_thread.join();
+  read_thread.join();
+
+  return 0;
 }
