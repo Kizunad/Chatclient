@@ -1,0 +1,4 @@
+CompileFlags:
+    Add:
+        - "-I/home/kiz/CodeProjects/Chatroom/client/includes"
+        - "-I/home/kiz/CodeProjects/Chatroom/server/includes"

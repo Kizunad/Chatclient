@@ -19,6 +19,8 @@ int main(int argc, char **argv) {
 
   client->start();
 
+  std::cout << "Starting read_thread" << std::endl;
+
   std::thread io_thread([&io_context]() { io_context.run(); });
   std::thread read_thread([client]() {
     while (true) {
@@ -34,6 +36,7 @@ int main(int argc, char **argv) {
     }
   });
 
+  std::string buf;
   io_context.stop();
   io_thread.join();
   read_thread.join();
