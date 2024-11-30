@@ -31,7 +31,7 @@ void do_read() {
                 data_.erase(0,length);
 
                 std::cout << msg << std::endl;
-                
+                do_write(msg);
             }});
 }
 

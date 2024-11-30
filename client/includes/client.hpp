@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <boost/system/detail/error_code.hpp>
 #define ERR "[ERROR]"
 
 #include <boost/asio.hpp>
@@ -57,6 +58,14 @@ public:
   }
 
 private:
+  void read_ec(boost::system::error_code ec){
+    if(ec == boost::asio::error::eof){
+      std::cerr << "[INFO] Connection closed by server." << std::endl;
+    } else {
+      std::cerr << ERR << " client do_read() " << ec.what() << std::endl;
+    }
+
+  }
   void do_close() {
     auto self(shared_from_this());
     socket_.close();
@@ -67,11 +76,11 @@ private:
         socket_, endpoints_,
         [this, self](boost::system::error_code ec, tcp::endpoint) {
           if (!ec) {
+            std::cout << "Client connected, calling do_read()..." << std::endl;
             boost::asio::post(strand_, [this]() { do_read(); });
           } else {
             std::cerr << ERR << " Client failed to connect. " << ec.what()
                       << std::endl;
-            do_close();
           }
         });
   }
@@ -108,8 +117,8 @@ private:
         boost::asio::bind_executor(
             strand_, [this, self](boost::system::error_code ec, std::size_t l) {
               if (ec) {
-                std::cerr << ERR << " do_read() " << ec.what() << std::endl;
-                do_close();
+                read_ec(ec);
+                return;
               }
               std::string msg(read_buf_.substr(0, l));
               read_buf_.erase(0, l);
