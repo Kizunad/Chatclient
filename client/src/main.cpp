@@ -2,9 +2,18 @@
 #include <cstdio>
 #include <exception>
 #include <iostream>
+#include <mutex>
+#include <string>
 #include <sys/types.h>
 #include <thread>
+#include <memory.h>
 
+std::mutex cout_mutex;
+
+void safe_cout(const std::string str){
+  std::lock_guard<std::mutex> lock(cout_mutex);
+  std::cout << str << std::endl;
+}
 // ./client <host> <port>
 int main(int argc, char **argv) {
   if (argc != 3) {
@@ -28,7 +37,8 @@ int main(int argc, char **argv) {
     std::thread read_thread([client]() {
       while (true) {
         try {
-          std::cout << "Recv: " << client->read_with_wait() << std::endl;
+          std::string msg("Recv: "+ client->read_with_wait());
+          safe_cout(msg);
         } catch (const std::exception &e) {
           std::cerr << "Caught exception: " << e.what() << std::endl;
           break;
@@ -45,7 +55,7 @@ int main(int argc, char **argv) {
         break;
       }
       client->write(buf);
-      std::cout << "Sent: " << buf << std::endl;
+      safe_cout("Sent: " + buf);
     }
     client->stop();
     io_context.stop();

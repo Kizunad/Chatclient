@@ -17,6 +17,8 @@ Session(tcp::socket socket) : socket_(std::move(socket)) {}
 
 void start(){do_read();}
 
+void write(const std::string& msg){}
+
 private:
 void do_read() {
     auto self(shared_from_this());
